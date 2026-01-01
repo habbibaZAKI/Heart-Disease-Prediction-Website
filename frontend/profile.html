@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile & Health Insights</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1976d2, #63a4ff);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: #1976d2;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        nav .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+        nav a:hover { text-decoration: underline; }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px 20px;
+        }
+
+        .profile-card {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+        }
+
+        .user-header {
+            border-bottom: 2px solid #f0f2f5;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+        }
+
+        .user-header h2 {
+            color: #1976d2;
+            margin: 0 0 10px 0;
+        }
+
+        .user-header p {
+            margin: 5px 0;
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* Analytics Section */
+        .analytics-section h3 {
+            color: #1976d2;
+            margin-top: 0;
+            font-size: 1.2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0 30px 0;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px 10px;
+            border-radius: 12px;
+            border-bottom: 4px solid #1976d2;
+            transition: transform 0.2s;
+        }
+        .stat-item:hover { transform: translateY(-5px); }
+
+        .stat-item label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .stat-item span {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        /* Buttons */
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn {
+            background-color: #9e9e9e;
+            color: white;
+        }
+        .logout-btn:hover { background-color: #757575; }
+
+        .delete-btn {
+            background-color: #ffffff;
+            color: #d32f2f;
+            border: 2px solid #d32f2f;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+            color: white;
+        }
+
+        .loading-text { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html">Prediction</a>
+        <a href="profile.html">Profile</a>
+    </div>
+    <a href="#" style="color: white; text-decoration: none;" onclick="logout()">Logout</a>
+</nav>
+
+<div class="container">
+    <div class="profile-card">
+        <div class="user-header">
+            <h2>User Profile</h2>
+            <p><strong>Name:</strong> <span id="userName" class="loading-text">Loading...</span></p>
+            <p><strong>Email:</strong> <span id="userEmail" class="loading-text">Loading...</span></p>
+        </div>
+
+        <div class="analytics-section">
+            <h3>Personal Health Insights</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+                Summary based on your prediction history
+            </p>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <label>Total Tests</label>
+                    <span id="statTotal">0</span>
+                </div>
+                <div class="stat-item">
+                    <label>Avg Chol</label>
+                    <span id="statChol">0</span>
+                </div>
+                <div class="stat-item">
+                    <label>Risk Alerts</label>
+                    <span id="statRisk">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+            <button class="delete-btn" id="deleteBtn">Delete Account & Data</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Initial Checks
+    const email = localStorage.getItem("user_email");
+    if (!email) {
+        window.location.href = "login.html";
+    }
+
+    // 2. Load Page Data
+    async function fetchProfileData() {
+        try {
+            // Fetch User Details
+            const userRes = await fetch(`http://127.0.0.1:8000/profile?email=${encodeURIComponent(email)}`);
+            const userData = await userRes.json();
+            
+            document.getElementById("userName").textContent = userData.name || "N/A";
+            document.getElementById("userEmail").textContent = userData.email || email;
+
+            // Fetch Personal Analytics
+            const statsRes = await fetch(`http://127.0.0.1:8000/user-stats?email=${encodeURIComponent(email)}`);
+            if (statsRes.ok) {
+                const statsData = await statsRes.json();
+                document.getElementById("statTotal").textContent = statsData.total;
+                document.getElementById("statChol").textContent = statsData.avg_chol + " mg/dL";
+                document.getElementById("statRisk").textContent = statsData.high_risk_count;
+            }
+        } catch (error) {
+            console.error("Error loading profile:", error);
+        }
+    }
+
+    // 3. Delete Account Logic
+    document.getElementById("deleteBtn").addEventListener("click", async () => {
+        const confirmDelete = confirm("Warning: This will permanently delete your account and all health prediction history. Continue?");
+        
+        if (confirmDelete) {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/profile?email=${encodeURIComponent(email)}`, {
+                    method: "DELETE"
+                });
+                const result = await response.json();
+                alert(result.message);
+                logout();
+            } catch (err) {
+                alert("Could not delete account. Please try again later.");
+            }
+        }
+    });
+
+    // 4. Logout Logic
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+
+    // Start
+    window.onload = fetchProfileData;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f4f7f9;
+            text-align: center;
+        }
+
+        nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .result-card {
+            background-color: white;
+            display: inline-block;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .result-card h2 {
+            color: #1976d2;
+            margin-bottom: 20px;
+        }
+
+        .result-card p {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #125ea2;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="index.html">Prediction</a>
+    <a href="profile.html">Profile</a>
+    <a href="login.html" onclick="logout()">Logout</a>
+</nav>
+
+<div class="result-card">
+    <h2>Prediction Result</h2>
+    <p id="resultText">Loading...</p>
+    <button onclick="goBack()">Make Another Prediction</button>
+</div>
+
+<script>
+    // Logout
+    function logout() {
+        localStorage.removeItem("user_email");
+        localStorage.removeItem("latest_prediction");
+        window.location.href = "login.html";
+    }
+
+    // Go back to prediction page
+    function goBack() {
+        window.location.href = "index.html";
+    }
+
+    // Display the latest prediction
+    document.addEventListener("DOMContentLoaded", () => {
+        const resultText = document.getElementById("resultText");
+        const latest = localStorage.getItem("latest_prediction");
+
+        if (!latest) {
+            resultText.innerText = "No prediction found. Please make a prediction first.";
+            return;
+        }
+
+        if (parseInt(latest) === 1) {
+            resultText.innerText = "Heart Disease Detected 💔";
+            resultText.style.color = "red";
+        } else {
+            resultText.innerText = "No Heart Disease 🙂";
+            resultText.style.color = "green";
+        }
+    });
+</script>
+
+</body>
+</html>
